@@ -39,7 +39,7 @@ pacf(price.tran)
 
 # Where is the possible level shift ? 
 # Look at pre covid prices ? 
-price.log.cov = window(price.log, end = 2019)
+price.log.cov = window(price.log, end = 2020)
 # See some possible models 
 
 Model1 <- sarima(price.log.cov,0,1,1,details = TRUE,  no.constant = TRUE, tol = sqrt(.Machine$double.eps)) 
