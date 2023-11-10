@@ -2,10 +2,6 @@ library(astsa)
 library(ggplot2)
 library(timeSeries)
 
-setwd("/Users/dario/Desktop/TSP") # Set your working directory 
-
-
-
 # col, name, detail
 # 2, BCPI,	 BCPI Total 	
 # 3, BCNE,	 BCPI Excluding Energy 				
@@ -20,54 +16,45 @@ setwd("/Users/dario/Desktop/TSP") # Set your working directory
 ## 1972-01-01 - 2023-10-01 ##
 
 M.BCPI <- as.data.frame(read.csv("M.BCPI.csv"))
-M.ER <- as.data.frame(read.csv("ER.csv")) 
-M.ER <- M.ER[-(1:12),] # Exchange Rate 
 
+total <- ts(M.BCPI[,2], start = 1972, frequency = 12)
+tsplot(total)
 
-yy <- ts(M.BCPI[300:622,2], start = 1997, frequency = 12)
-tsplot(y)
-dyy <-diff((log(y)), 1)
+par(mfrow=c(1,2))
+# Use post 1996 prices (crude oil price index changed)
+price <- window(total, start = 1996)
+tsplot(price, main = "Total Index")
+
+# Look at log transformation 
+price.log <- log(price)
+tsplot(price.log, main = "Log Price of Index")
+
+# Need to find transformation for stationary distribution
+price.tran <- diff((price.log), 1)
 par(mfrow = c(1,3))
-tsplot(dyy, ylab = "BCPI", main = "BCPI 1972-2023")
-
-acf(dyy)
-pacf(dyy)
-
-
-# Where is the level shift ? 
+tsplot(price.tran, ylab = "BCPI", main = "BCPI 1996-2023")
+acf(price.tran)
+pacf(price.tran)
 
 
-t1 <- 2006; t2 <- 2010
-tt <- c(t1:t2)
-n0 <-length(tt)
-AICinfo = rep(0,n0)
-Time <- time(y)
-iter <- 1
-for(time1 in tt){
-  TimeBk <- c(Time>=time1) # Creating the indicator variable 
-  Model1 <- sarima(y,2,0,0,details = TRUE, xreg = TimeBk, no.constant = TRUE, tol = sqrt(.Machine$double.eps)) 
-  AICinfo[iter] <- Model1$AIC
-  iter <- iter + 1
-  
-}
-
-t0 <- tt[AICinfo == min(AICinfo)]
-# Fit with time shit at t0 
-
-reg 
-Time0 <- c(Time>=2020)
-
+# Where is the possible level shift ? 
+# Look at pre covid prices ? 
+price.log.cov = window(price.log, end = 2019)
 # See some possible models 
 
+Model1 <- sarima(price.log.cov,0,1,1,details = TRUE,  no.constant = TRUE, tol = sqrt(.Machine$double.eps)) 
+Model2 <-sarima(price.log.cov,0,1,2,details = TRUE,  no.constant = TRUE, tol = sqrt(.Machine$double.eps)) 
+Model3 <- sarima(price.log.cov,0,1,3,details = TRUE, no.constant = TRUE, tol = sqrt(.Machine$double.eps)) 
+Model4 <-sarima(price.log.cov,1,1,1,details = TRUE,   no.constant = TRUE, tol = sqrt(.Machine$double.eps))
+Model5<- sarima(price.log.cov,1,1,2,details = TRUE,   no.constant = TRUE, tol = sqrt(.Machine$double.eps))
+Model6<- sarima(price.log.cov,2,1,2,details = TRUE,   no.constant = TRUE, tol = sqrt(.Machine$double.eps))
 
-Model2 <- sarima(y,0,1,1,details = TRUE,  no.constant = TRUE, tol = sqrt(.Machine$double.eps)) 
-Model3 <-sarima(y,0,1,2,details = TRUE,  no.constant = TRUE, tol = sqrt(.Machine$double.eps)) 
-Model4 <- sarima(y,0,1,3,details = TRUE, no.constant = TRUE, tol = sqrt(.Machine$double.eps)) 
-Model5 <- sarima(y,1,1,1,details = TRUE,   no.constant = TRUE, tol = sqrt(.Machine$double.eps))
-Model6<- sarima(y,1,1,2,details = TRUE,   no.constant = TRUE, tol = sqrt(.Machine$double.eps))
-Model7<- sarima(y,2,1,2,details = TRUE,   no.constant = TRUE, tol = sqrt(.Machine$double.eps))
+AICr1 <- c(Model1$AIC,Model2$AIC,Model3$AIC,Model4$AIC,Model5$AIC,Model6$AIC)
 
-AICr1 <- c(Model2$AIC,Model3$AIC,Model4$AIC,Model5$AIC,Model6$AIC,Model7$AIC)
+# best model 
+
+best <- which.min(AICr1) # model 4 is the best
+
 
 
 
