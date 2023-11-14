@@ -91,10 +91,10 @@ mult_plot <- function(i, DIFF = d, log = FALSE, ACF = FALSE, PACF = FALSE){
          main = paste(names(M.BCPI[i])), ylab = "Index" )
   
   if(ACF == TRUE){
-    acf(data, 50)
+    acf(data, 48)
   }
   if(PACF == TRUE){
-    pacf(data, 50)
+    pacf(data, 48)
   }
   
 }         
