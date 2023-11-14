@@ -2,6 +2,14 @@ library(astsa)
 library(ggplot2)
 library(timeSeries)
 
+BCPI = 2
+BCNE = 3
+ENER = 4
+MTLS = 5
+FOPR = 6
+AGRI = 7
+FISH = 8
+
 # col, name, detail
 # 2, BCPI,	 BCPI Total 	
 # 3, BCNE,	 BCPI Excluding Energy 				
@@ -56,6 +64,46 @@ AICr1 <- c(Model1$AIC,Model2$AIC,Model3$AIC,Model4$AIC,Model5$AIC,Model6$AIC)
 best <- which.min(AICr1) # model 4 is the best
 
 
+#Functions to make plotting comparisons easier
 
+#Use STATIC VARIABLE for i, all other parameters can be left empty if desired
+#Plots a specific commodity with/without transformations and included acf/pacf plots 
+
+mult_plot <- function(i, DIFF = d, log = FALSE, ACF = FALSE, PACF = FALSE){
+  row = 1
+  data <- ts(M.BCPI[,i], start = 1972, end = 2020, frequency = 12)
+  if(log == TRUE){
+    data <- log(data)
+  }
+  
+  if(!missing(DIFF) & DIFF>0){
+  data <- diff(data, DIFF)
+  }
+  
+  if(ACF == TRUE){#bad coder moment
+    row = row + 1
+  }
+  if(PACF == TRUE){
+    row = row + 1
+  }
+  par(mfrow=c(row,1))
+  tsplot(data,
+         main = paste(names(M.BCPI[i])), ylab = "Index" )
+  
+  if(ACF == TRUE){
+    acf(data, 50)
+  }
+  if(PACF == TRUE){
+    pacf(data, 50)
+  }
+  
+}         
+#Plots every commodity on separate pages
+plot_everything<- function(diff = d, log = FALSE, acf = FALSE, pacf = FALSE){
+  for(i in 2:8){
+    mult_plot(i, diff, log, acf, pacf)
+  }
+}
+}
 
 
