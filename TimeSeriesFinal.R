@@ -1,24 +1,23 @@
 library(astsa)
 library(ggplot2)
 library(timeSeries)
+library(forecast)
 
 # col, name, detail
-# 2, BCPI,	 BCPI Total 	
-# 3, BCNE,	 BCPI Excluding Energy 				
-# 4, ENER,	 BCPI Energy 			
-# 5, MTLS,	 BCPI Metals and Minerals 				
-# 6, FOPR,	 BCPI Forestry 			
-# 7, AGRI,	 BCPI Agriculture					
-# 8, FISH,	 BCPI Fish		
+BCPI = 2
+BCNE = 3
+ENER = 4
+MTLS = 5
+FOPR = 6
+AGRI = 7
 
-## A.____ = annual metric; M.____ = monthly metric
 
 ## 1972-01-01 - 2023-10-01 ##
 
 M.BCPI <- as.data.frame(read.csv("M.BCPI.csv"))
 
 
-total <- ts(M.BCPI[,2], start = 1972, frequency = 12)
+total <- ts(M.BCPI[,3], start = 1972, frequency = 12)
 tsplot(total)
 
 par(mfrow=c(1,2))
@@ -44,29 +43,16 @@ price.log.cov = window(price.log, end = 2020)
 tsplot(price.log.cov)
 # See some possible models 
 
-Model1 <- sarima(price.log.cov,0,1,1,details = TRUE,  no.constant = TRUE, tol = sqrt(.Machine$double.eps)) 
-Model2 <-sarima(price.log.cov,0,1,2,details = TRUE,  no.constant = TRUE, tol = sqrt(.Machine$double.eps)) 
-Model3 <- sarima(price.log.cov,0,1,3,details = TRUE, no.constant = TRUE, tol = sqrt(.Machine$double.eps)) 
-Model4 <-sarima(price.log.cov,1,1,1,details = TRUE,   no.constant = TRUE, tol = sqrt(.Machine$double.eps))
-Model5<- sarima(price.log.cov,1,1,2,details = TRUE,   no.constant = TRUE, tol = sqrt(.Machine$double.eps))
-Model6<- sarima(price.log.cov,2,1,2,details = TRUE,   no.constant = TRUE, tol = sqrt(.Machine$double.eps))
-
-AICr1 <- c(Model1$AIC,Model2$AIC,Model3$AIC,Model4$AIC,Model5$AIC,Model6$AIC)
-
-# best model 
-
-best <- which.min(AICr1) # model 4 is the best
 
 
-<<<<<<< Updated upstream
-=======
+
 #Functions to make plotting comparisons easier
 
 #Use STATIC VARIABLE for i, all other parameters can be left empty if desired
 #Plots a specific commodity with/without transformations and included acf/pacf plots 
 
 mult_plot <- function(i, DIFF = d, log = FALSE, ACF = FALSE, PACF = FALSE){
-  row = 1
+  row = 3
   data <- ts(M.BCPI[,i], start = 1980, end = 2020, frequency = 12)
   par(mfrow=c(row,1))
  
@@ -100,7 +86,36 @@ plot_everything<- function(diff = 1, log = FALSE, acf = FALSE, pacf = FALSE){
     mult_plot(i, diff, log, acf, pacf)
   }
 }
->>>>>>> Stashed changes
 
-plot_everything(1, TRUE, FALSE, FALSE)
+total <-  window(total, end = 2020)
+
+
+total.l <- log(total) # log total
+total.l.d <- diff(total.l, 1)
+total.l.d.s <- diff(total.l.d, 12)
+
+## Plotting log ting 
+par(mfrow = c(1,3))
+tsplot(ltotal.d)
+acf(ltotal.d, lag.max = 50)
+pacf(ltotal.d, lag.max = 50)
+
+
+## Looking for seasonal trends 
+par(mfrow = c(1,3))
+tsplot(ltotal.ds)
+acf(total.l.d.s, lag.max = 50)
+pacf(total.l.d.s, lag.max = 50)
+
+## Potential (0,1,12) x (1,1,1)_12??
+
+Model1 <- sarima(total.l, 1,1,0, P = 1, D = 1, Q = 1, S = 12)
+Model2 <- sarima(total.l, 0,1,1, P =1, D =1, Q = 1, S = 12)
+Model3 <- sarima(total.l, 1,1,1, P =1, D =1, Q = 1, S = 12)
+
+# Forecast
+par(mforw = c(1,2))
+tsplot(log(total1))
+sarima.for(ltotal,12,  1, 1, 0, 1, 1, 1, 12)
+
 
