@@ -87,12 +87,12 @@ plot_everything<- function(diff = 1, log = FALSE, acf = FALSE, pacf = FALSE){
   }
 }
 
-total <-  window(total, end = 2020) # CHANGE TOTAL 
+total.c <-  window(total, end = 2020) # CHANGE TOTAL 
 
 
-total.l <- log(total) # log total
-total.l.d <- diff(total.l, 1)
-total.l.d.s <- diff(total.l.d, 12)
+total.l <- log(total.c) # log total
+total.l.d <- diff(total.l, 1) # difference log total 
+total.l.d.s <- diff(total.l.d, 12) # difference log total seasonal 
 
 ## Plotting log ting 
 par(mfrow = c(1,3))
@@ -107,13 +107,20 @@ tsplot(total.l.d.s)
 acf(total.l.d.s, lag.max = 50)
 pacf(total.l.d.s, lag.max = 50)
 
+### NOTES: 
+
+### PACF cuts off tails after ks for k = 1,2,3,... s = 12 => P = 0
+
+### ACF cuts of after Q = 1
+
+## Implies we have seasonal (0,1,1)
+
 ## Potential (0,1,12) x (1,1,1)_12??
 
-Model1 <- sarima(total.l, 1,1,0, P = 1, D = 1, Q = 1, S = 12)
-Model3 <- sarima(total.l, 1,1,1, P =0, D =1, Q = 1, S = 12) ## BEST MODEL 
+Model1 <- sarima(total.l, 1,1,0, P = 0, D = 1, Q = 1, S = 12) ## BEST 
+Model3 <- sarima(total.l, 1,1,1, P =0, D =1, Q = 1, S = 12) ## SECOND BEST 
 Model4 <- sarima(total.l, 0,1,1, P =0, D =1, Q = 1, S = 12)
+Model5 <- sarima(total.l, 0,1,2, P = 0, D = 1, Q = 1, S = 12)
 
-# Forecast
-sarima.for(total.l,36, 1, 1, 1, 0, 1, 1, 12)
 
 
