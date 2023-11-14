@@ -104,6 +104,6 @@ plot_everything<- function(diff = d, log = FALSE, acf = FALSE, pacf = FALSE){
     mult_plot(i, diff, log, acf, pacf)
   }
 }
-}
+
 
 
