@@ -97,15 +97,15 @@ total.l.d.s <- diff(total.l.d, 12) # difference log total seasonal
 ## Plotting log ting 
 par(mfrow = c(1,3))
 tsplot(total.l.d)
-acf(total.l.d, lag.max = 50)
-pacf(total.l.d, lag.max = 50)
+acf(total.l.d)
+pacf(total.l.d)
 
 
 ## Looking for seasonal trends 
 par(mfrow = c(1,3))
 tsplot(total.l.d.s)
 acf(total.l.d.s, lag.max = 50)
-pacf(total.l.d.s, lag.max = 50)
+pacf(total.l.d.s, lag.max = 100)
 
 ### NOTES: 
 
@@ -115,12 +115,51 @@ pacf(total.l.d.s, lag.max = 50)
 
 ## Implies we have seasonal (0,1,1)
 
-## Potential (0,1,12) x (1,1,1)_12??
+## Potential (0,1,11) x (1,0,0)_12??
 
-Model1 <- sarima(total.l, 1,1,0, P = 0, D = 1, Q = 1, S = 12) ## BEST 
-Model3 <- sarima(total.l, 1,1,1, P =0, D =1, Q = 1, S = 12) ## SECOND BEST 
-Model4 <- sarima(total.l, 0,1,1, P =0, D =1, Q = 1, S = 12)
-Model5 <- sarima(total.l, 0,1,2, P = 0, D = 1, Q = 1, S = 12)
 
+### USE Model$ttable to look at significant coefficients 
+
+Model1 <- sarima(total.l, 0,1,12) 
+Model2 <- sarima(total.l, 12,1,0) 
+Model3 <- sarima(total.l, 11,1,0)
+Model4 <- sarima(total.l, 11,1,1) 
+Model5 <- sarima(total.l, 11,1,2)
+Model6 <- sarima(total.l, 12,1,2)
+Model7 <-sarima(total.l, 12, 1, 1)
+
+
+# Winner Model 7,6,1
+
+## Forecasting
+par(mfrow =c(1,3))
+sarima.for(total.l, 36, 0,1,12, main = "Arima(12,1,1)")
+sarima.for(total.l, 36, 12,1,2, main = "Arima(12,1,2)")
+sarima.for(total.l, 36, 0,1,12, main = "Arima(0,1,12)")
+
+Model8 <- sarima(total.l, 1,1,12)
+Model9 <- sarima(total.l,2, 1,12)
+
+
+
+
+# SECOND DIFFERENCE ??? 
+
+total.l.d2 <- diff(total.l, 2)
+
+par(mfrow=c(1,2))
+tsplot(total.l.d2)
+acf2(total.l.d2)
+
+Model10 <-sarima(total.l.d2, 11,2,2)
+Model11<-sarima(total.l.d2, 2,2,2)
+
+
+
+
+
+
+
+## FORECASTING 
 
 
