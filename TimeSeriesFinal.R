@@ -5,6 +5,13 @@ library(forecast)
 
 M.BCPI <- as.data.frame(read.csv("M.BCPI.csv"))
 
+# Total Index Including Energy 
+total.en <- ts(M.BCPI[,2], start = 1972, frequency = 12)
+tsplot(total.en) # The effects of marekt crashes are much more notable 
+
+
+
+# Without Energy 
 total <- ts(M.BCPI[,3], start = 1972, frequency = 12)
 tsplot(total)
 
