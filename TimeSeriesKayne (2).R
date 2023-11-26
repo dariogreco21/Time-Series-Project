@@ -211,7 +211,7 @@ zoomed_plot <-
   geom_segment(aes(x = as.Date('2023-10-01'), xend = as.Date("2023-11-01"),
                    y = 418.0750, yend = 414.3796), size = 1, colour = 'orange')
 
-f_final <- fortify(forecast)
+f_final <- fortify(d.forecast)
 f_final$date <- as.Date((f_final$Index))
 f_final <- f_final %>% #No touchy
   select(-Index) %>%
