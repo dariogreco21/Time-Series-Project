@@ -11,13 +11,13 @@ library(scales)
 #It's important to import one morbillion packages to put rectangles on a plot
 M.BCPI <- as.data.frame(read.csv("M.BCPI"))
 
-<<<<<<< Updated upstream
+
 # BCPI Total index
 total.en <- ts(M.BCPI[,2], start = 1972, frequency = 12)
 tsplot(total.en) # The effects of marekt crashes are much more notable 
 
 # BCNE
-=======
+
 M.BCPI <- as.data.frame(read.csv("M.BCPI.csv"))
 par(mfrow=c(1,2))
 # Total Index Including Energy 
@@ -25,7 +25,7 @@ total.en <- ts(M.BCPI[,2], start = 1972, frequency = 12)
 tsplot(total.en) # The effects of marekt crashes are much more notable 
 
 # Without Energy 
->>>>>>> Stashed changes
+
 total <- ts(M.BCPI[,3], start = 1972, frequency = 12)
 tsplot(total)
 
@@ -48,20 +48,19 @@ pacf(total.l.d)
 M1 <- sarima(total.l, 0,1,12) 
 M2 <- sarima(total.l, 0,1,11)
 M3 <- sarima(total.l, 11,1,0)
-<<<<<<< Updated upstream
 M4 <-sarima(total.l, 12,1,0) 
 M5 <- sarima(total.l, 10,1,3)# BAD
 
 
 AICv <- c(M1$AIC, M2$AIC, M3$AIC, M4$AIC, M5$AIC)
 BestAIC <- order(AICv)[1:3] ## Models 5,1,3 are best (in order)
-=======
+
 M4 <- sarima(total.l, 11,1,3) 
 M5 <- sarima(total.l, 11,1,2) # BEST 
 M6 <- sarima(total.l, 12,1,2)
 M7 <-sarima(total.l, 12, 1, 1) # Over fit 
 M8 <-sarima(total.l, 12,1,0)  # BAD
->>>>>>> Stashed changes
+
 
 
 
