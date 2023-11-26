@@ -2,13 +2,18 @@ library(astsa)
 library(ggplot2)
 library(timeSeries)
 library(forecast)
-
-M.BCPI <- as.data.frame(read.csv("M.BCPI.csv"))
+library(ggfortify)
+library(grid)
+library(ggthemes)
+library(reshape2)
+library(ggforce)
+#It's important to import one morbillion packages to put rectangles on a plot
+M.BCPI <- as.data.frame(read.csv("C:\\Users\\Kayne\\Desktop\\Time Series Project\\M.BCPI.csv"))
 
 # Total Index Including Energy 
 total.en <- ts(M.BCPI[,2], start = 1972, frequency = 12)
 tsplot(total.en) # The effects of marekt crashes are much more notable 
-
+ener <- ts(M.BCPI[,4], start = 1972, frequency = 12)
 
 
 # Without Energy 
@@ -43,7 +48,7 @@ M9 <-sarima(total.l, 0,1,12, 0,0,2, 12)
 
 AICv <- c(M1$AIC, M2$AIC, M3$AIC, M4$AIC, M5$AIC, M6$AIC, M7$AIC)
 BestAIC <- order(AICv)[1:4] # Returns four best models with AIC criterion 
- # NOTE: MODEL 6 and 5 are similar we just look at model 5 for now 
+# NOTE: MODEL 6 and 5 are similar we just look at model 5 for now 
 
 # Extracts Ljung - Box statistic p -values for an ARMA(p,d,q) 
 # NOTE: df = p + q
@@ -77,6 +82,61 @@ L = fore1$pred - fore1$se
 xx = c(time(U), rev(time(U))); yy = c(L, rev(U))
 polygon(xx, yy, border = 8, col = gray(.6, alpha = .2))
 lines(fore1$pred, type="l", col=2) # MAYBE ADD A SECOND ERROR BAR
+
+
+##############ggplot###########
+
+
+
+
+timeline_plot <- function(ts, title){ #title in quotes
+  autoplot(ts, ts.colour = "black", size = 0.8,  
+           ts.linetype = "solid", xlab = "Time", ylab = "Commodity Price Index") +
+  ggtitle(title) + 
+  theme_calc() + #Theme to make it look pretty
+  scale_x_date(breaks = seq(as.Date("1972-01-01"), as.Date("2023-10-01"), by="5 years"), 
+               labels=label_date("%Y")) + # more frequent time intervals
+  
+  ####Covid####
+  #Inserts text onto plot by using x-value as date for more accurate alignment.
+  # Add an integer to this val for subtle shifting if required
+  geom_text(aes(x = as.Date('2020-03-24') + 580, y = -20), label = "Covid-19", color = "black",
+               size = 3, fontface = 'plain') +
+  #Creates rectangle that can respond to the alpha parameter correctly (geom_rect wasnt working)
+  annotate("rect", xmin=as.Date('2020-03-24'), xmax = as.Date('2022-10-01'),
+                ymin = 0, ymax = Inf, fill = "darkred", alpha = 0.2) +
+  
+  #2008 bubble steve carrel saves the world by being angry ryan gosling is so me
+  geom_text(aes(x = as.Date('2008-03-24') + 200, y = -20), label = "Global Financial Crisis", color = "black",
+            size = 3, fontface = 'plain') + 
+  annotate("rect", xmin=as.Date('2008-04-24'), xmax = as.Date('2009-10-01'),
+           ymin = 0, ymax = Inf, fill = "blue", alpha = 0.2) +
+  
+  # Dot Com Recession
+  geom_text(aes(x = as.Date('2000-03-24') + 400, y = -20), label = "Dot Com Crash", color = "black",
+            size = 3, fontface = 'plain') +  
+  annotate("rect", xmin=as.Date('2000-06-24'), xmax = as.Date('2002-01-01'),
+           ymin = 0, ymax = Inf, fill = "darkgreen", alpha = 0.2) +
+  
+  
+  #1979 Eenrgy crisis
+  
+  geom_text(aes(x = as.Date('1979-01-24') + 200, y = -20), label = "Energy Crisis", color = "black",
+            size = 3, fontface = 'plain') + 
+  annotate("rect", xmin=as.Date('1979-01-24'), xmax = as.Date('1981-01-24'),
+           ymin = 0, ymax = Inf, fill = "cyan", alpha = 0.2)
+}
+
+timeline_plot(total.en, "British Columbia Consumer Price Index")
+timeline_plot(total, "British Columbia Consumer Price Index, No Energy")
+timeline_plot(ener, "British Columbia Consumer Price Index, Only Energy") #No idea why the 0 axis squishes here but 
+#if we want this plot i can fuck with it directly
+
+  
+  
+  
+
+
 
 
 
