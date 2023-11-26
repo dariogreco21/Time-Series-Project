@@ -1,6 +1,6 @@
 packages <- c("astsa", "dplyr", "ggplot2", "timeSeries", "forecast",
               "ggfortify", "grid", "ggthemes", "reshape2", "ggforce", 
-              "scales", "lubridate", "tidyquant")
+              "scales", "lubridate", "tidyquant", "cowplot")
 lapply(packages, library, character.only = TRUE)
 #Saves space
 
@@ -85,80 +85,119 @@ lines(fore1$pred, type="l", col=2) # MAYBE ADD A SECOND ERROR BAR
 
 
 ##############ggplot###########
+# Baseline autoplot attributes for ts plots to remove clutter from code
 
+##title,x,y in quotes
 
-#Does pretty plot with input as index on any specific part of BCPI data
-#that we want to look at
-timeline_plot <- function(ts, title){ #title in quotes
-  autoplot(ts, ts.colour = "black", size = 0.8,  
-           ts.linetype = "solid", xlab = "Time", ylab = "Commodity Price Index") +
+graph_aes <- function(data, title, x, y){ 
+  if(missing(x)){
+    x = "Time"
+  }
+  if(missing(y)){
+    y = "Commodity Price Index"
+  }
+  
+  autoplot(data, data.colour = "black", size = 0.8,  
+           data.linetype = "solid", xlab = "x", ylab = "y") +
     ggtitle(title) + 
     theme_calc() + #Theme to make it look pretty
     scale_x_date(breaks = seq(as.Date("1972-01-01"), as.Date("2023-10-01"), by="5 years"), 
-                 labels=label_date("%Y")) + # more frequent time intervals
-    
-    ####Covid####
-  #Inserts text onto plot by using x-value as date for more accurate alignment.
-  # Add an integer to this val for subtle shifting if required
-  geom_text(aes(x = as.Date('2020-03-01') + 580, y = -20), label = "Covid-19", color = "black",
-            size = 3, fontface = 'plain') +
-    #Creates rectangle that can respond to the alpha parameter correctly (geom_rect wasnt working)
-    annotate("rect", xmin=as.Date('2020-03-01'), xmax = as.Date('2022-10-01'),
-             ymin = 0, ymax = Inf, fill = "darkred", alpha = 0.2) +
-    
-    #2008 bubble steve carrel saves the world by being angry ryan gosling is so me
-    geom_text(aes(x = as.Date('2008-03-24') + 200, y = -20), label = "Global Financial Crisis", color = "black",
-              size = 3, fontface = 'plain') + 
-    annotate("rect", xmin=as.Date('2008-04-24'), xmax = as.Date('2009-10-01'),
-             ymin = 0, ymax = Inf, fill = "blue", alpha = 0.2) +
-    
-    # Dot Com Recession
-    geom_text(aes(x = as.Date('2000-03-24') + 400, y = -20), label = "Dot Com Crash", color = "black",
-              size = 3, fontface = 'plain') +  
-    annotate("rect", xmin=as.Date('2000-06-24'), xmax = as.Date('2002-01-01'),
-             ymin = 0, ymax = Inf, fill = "darkgreen", alpha = 0.2) +
-    
-    
-    #1979 Energy crisis
-    
-    geom_text(aes(x = as.Date('1979-01-24') + 200, y = -20), label = "Energy Crisis", color = "black",
-              size = 3, fontface = 'plain') + 
-    annotate("rect", xmin=as.Date('1979-01-24'), xmax = as.Date('1981-01-24'),
-             ymin = 0, ymax = Inf, fill = "cyan", alpha = 0.2)
+                 labels=label_date("%Y"))  # more frequent time intervals
 }
 
+######Following ggplot objects to combine into annotated graph########
+
+#Covid19
+covid_19_obj <- geom_text(aes(x = as.Date('2020-03-01') + 580, y = -20), 
+                          label = "Covid-19", color = "black",
+                          size = 3, fontface = 'plain') 
+covid_rect <- annotate("rect", xmin=as.Date('2020-03-01'), 
+                       xmax = as.Date('2022-10-01'),
+                       ymin = 0, ymax = Inf, fill = "darkred", alpha = 0.2)
+
+#2008 Housing Market Crash
+glob_cris_obj <- geom_text(aes(x = as.Date('2008-03-24') + 200, y = -20), 
+                           label = "Global Financial Crisis", color = "black",
+                           size = 3, fontface = 'plain') 
+glob_rect <- annotate("rect", xmin=as.Date('2008-04-24'), 
+                      xmax = as.Date('2009-10-01'),
+                      ymin = 0, ymax = Inf, fill = "blue", alpha = 0.2)
+
+#Dot Com Bubble
+dot_com_obj <- geom_text(aes(x = as.Date('2000-03-24') + 400, y = -20), 
+                         label = "Dot Com Crash", color = "black",
+                         size = 3, fontface = 'plain')
+dot_com_rect <- annotate("rect", xmin=as.Date('2000-06-24'), 
+                         xmax = as.Date('2002-01-01'),
+                         ymin = 0, ymax = Inf, fill = "darkgreen", alpha = 0.2)
+
+  
+#Energy Crisis 1979
+ener_obj <- geom_text(aes(x = as.Date('1979-01-24') + 200, y = -20), 
+                      label = "Energy Crisis", color = "black",
+                      size = 3, fontface = 'plain')
+ener_rect <- annotate("rect", xmin=as.Date('1979-01-24'), 
+                      xmax = as.Date('1981-01-24'),
+                      ymin = 0, ymax = Inf, fill = "cyan", alpha = 0.2)
+  
+
+############################################################################
+
+#Appends all objects into annotated graph
+timeline_plot <- function(ts, title){ 
+  graph_aes(ts, title) +
+    
+  covid_19_obj +
+    covid_rect +
+  glob_cris_obj +
+    glob_rect +
+  dot_com_obj +
+    dot_com_rect +
+  ener_obj +
+    ener_rect
+    
+    
+    
+}
+
+#Examples
 timeline_plot(total.en, "British Columbia Consumer Price Index")
 timeline_plot(total, "British Columbia Consumer Price Index, No Energy")
-timeline_plot(ener, "British Columbia Consumer Price Index, Only Energy") #No idea why the 0 axis squishes here but 
-#if we want this plot i can fuck with it directly
+timeline_plot(ener, "British Columbia Consumer Price Index, Only Energy") 
 
-
-
-
-Model1_corrected <-Arima(total, c(10,1,3), lambda = 0) #Use Arima() in order to use
-#                                         lambda parameter. Lambda = 0 -> first diff
-d.forecast <- forecast(Model1_corrected, level = c(95), h=24) #forecast object for final model
-
+#ALL FOLLOWING FUNCTION CALLS USE THIS. CHANGE MODEL FOR DIFFERENT ARIMA PLOTS
+#////////////////////////////////////////////////////////////#
+#Use Arima() in order to use lambda parameter. Lambda = 0 -> first diff
+Model1_corrected <-Arima(total, c(10,1,3), lambda = 0) 
+d.forecast <- forecast(Model1_corrected, level = c(95), h=24) 
+#////////////////////////////////////////////////////////////#
 #Zooming in on forecast (COMPLICATED VERSION)
 
-#fortify into a data frame and change all the column names to make sense out of 
-#all of this
-zoom <- fortify(d.forecast)
-zoom$date <- as.Date((zoom$Index))
-zoom <- zoom %>% #magic infix operator that i will not touch
-select(-Index) %>%
-  #Remove this line to get full plot
-  filter(date >= as.Date("2022-01-01")) %>%
+#Pure magic don't touch
+fcast_fix <- function(forecast, zoom = FALSE){
+  t <- zoom
+  f_final <- fortify(forecast)
+  f_final$date <- as.Date((f_final$Index))
+  f_final <- f_final %>% #No touchy
+  select(-Index) %>%
+     
   
-rename("Low95" = "Lo 95",
-       "High95" = "Hi 95",
-       "Forecast" = "Point Forecast")
+    rename("Low95" = "Lo 95",
+           "High95" = "Hi 95",
+           "Forecast" = "Point Forecast") %>%
+    
+    #Pipe magic do not question
+    {if(t) filter(.,date >= as.Date("2022-01-01")) else . }
+    #Filter date is where the zoomed in model STARTS, ends based on forecast
+    #length h from forecast()
+  
+  return(f_final)
+}
 
-
-# Zoomed in plot
+#Fitted model zoomed in on forecast
 
 zoomed_plot <-
-  ggplot(zoom, aes(x = date)) +
+  ggplot(fcast_fix(d.forecast, TRUE), aes(x = date)) +
   ggtitle("Prediction model - Zoomed in") +
   xlab("Time") + ylab("Commodity Price Index") +
   geom_ribbon(aes(ymin = Low95, ymax = High95, fill = "95%")) +
@@ -174,38 +213,9 @@ zoomed_plot <-
   geom_segment(aes(x = as.Date('2023-10-01'), xend = as.Date("2023-11-01"),
                    y = 418.0750, yend = 414.3796), size = 1, colour = 'orange')
 
-
-
-#There was an actually much easier and intuitive way to do this but
-# then I don't get the super sick colour packages.
-# also legend didnt work.
-
- # autoplot(d.forecast, ts.colour = "black", size = 0.8,  
- #         ts.linetype = "solid", xlab = "Time", ylab = "Commodity Price Index",
- #         predict.colour = "darkgreen", predict.linetype = 'dashed', conf.int = TRUE,
- #         predict.size = 0.9) +
- #  ggtitle("ARIMA(10,1,3) Forecast") + 
- #   xlab("Time") +
- #   ylab("Commodity Price Index") +
- #   geom_line(aes(y = d.forecast$fitted), col = "orange", size = 1, linetype = ) + 
- #  theme_calc() + #Theme to make it look pretty
-
-# This is how you zoom in
- #  coord_x_date(xlim = c(as.Date('2021-01-01'), as.Date('2025-10-01')))
-
-
-
-#Without zoom, literally same code without one line
-final <- fortify(d.forecast)
-final$date <- as.Date((final$Index))
-final <- final %>% #magic infix operator that i will not touch
-  select(-Index) %>%
-  rename("Low95" = "Lo 95",
-         "High95" = "Hi 95",
-         "Forecast" = "Point Forecast")
-
-final_plot <- 
-  ggplot(final, aes(x = date)) +
+# Entire plot with fitted model
+full_plot <- 
+  ggplot(fcast_fix(d.forecast, FALSE), aes(x = date)) +
   ggtitle("Final Fitted Model") +
   xlab("Time") + ylab("Commodity Price Index") +
   geom_ribbon(aes(ymin = Low95, ymax = High95, fill = "95%")) +
@@ -223,16 +233,57 @@ final_plot <-
   scale_x_date(breaks = seq(as.Date("1972-01-01"), as.Date("2023-10-01"), by="5 years"), 
                labels=label_date("%Y")) 
 
-
-final_plot
+#Examples
+full_plot
 zoomed_plot
 
 
+#Transformation Diagnostics plot
+#Using original log/diff data as example.
 
- 
+acf_1 <- ggAcf(total.l.d, lag = 48) + xlab("Lag (Months)") + ggtitle('Log First Diff ACF') +
+  theme_few() +
+  theme(plot.title = element_text(hjust = 0.5))
 
-  
+pacf_1 <- ggPacf(total.l.d, lag = 48)  + xlab("Lag (Months)") + ggtitle('Log First Diff PACF') +
+  theme_few() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+log_1 <- autoplot(total.l, ts.colour = "black", size = 0.8,  
+         ts.linetype = "solid", xlab = "Time", ylab = "Log Data") +
+  ggtitle("Log") + 
+  theme_few() +
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  scale_x_date(breaks = seq(as.Date("1972-01-01"), as.Date("2023-10-01"), by="15 years"), 
+               labels=label_date("%Y"))
+
+diff_1 <- autoplot(total.l.d, ts.colour = "black", size = 0.8,  
+                  ts.linetype = "solid", xlab = "Time", ylab = "Log Differenced Data") +
+  ggtitle("Logged Difference") + 
+  theme_few() +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_x_date(breaks = seq(as.Date("1972-01-01"), as.Date("2023-10-01"), by="15 years"), 
+               labels=label_date("%Y"))
+
+#Plots all in neat 4x4 grid
+plot_grid(log_1, diff_1, acf_1,pacf_1, labels = c('','', '', ''))  
 
 
 
-  
+
+# Other method of zooming into the forecast plot. Much simpler/intuitive but
+# then I don't get the super sick colour packages.
+# also legend didnt work.
+
+# autoplot(d.forecast, ts.colour = "black", size = 0.8,  
+#         ts.linetype = "solid", xlab = "Time", ylab = "Commodity Price Index",
+#         predict.colour = "darkgreen", predict.linetype = 'dashed', conf.int = TRUE,
+#         predict.size = 0.9) +
+#  ggtitle("ARIMA(10,1,3) Forecast") + 
+#   xlab("Time") +
+#   ylab("Commodity Price Index") +
+#   geom_line(aes(y = d.forecast$fitted), col = "orange", size = 1, linetype = ) + 
+#  theme_calc() + #Theme to make it look pretty
+
+# This is how you zoom in
+#  coord_x_date(xlim = c(as.Date('2021-01-01'), as.Date('2025-10-01')))
