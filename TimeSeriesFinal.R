@@ -174,6 +174,7 @@ d.forecast <- forecast(Model1_corrected, level = c(95), h=24)
 #Zooming in on forecast (COMPLICATED VERSION)
 
 #Pure magic don't touch
+#ignore until works
 fcast_fix <- function(forecast, zoom = FALSE){
   t <- zoom
   f_final <- fortify(forecast)
@@ -193,11 +194,28 @@ fcast_fix <- function(forecast, zoom = FALSE){
   
   return(f_final)
 }
+f_final_zoom <- fortify(forecast)
+  f_final$date <- as.Date((f_final$Index))
+  f_final <- f_final %>% 
+  select(-Index) %>%
+    filter(.,date >= as.Date("2022-01-01") %>%   
+  
+    rename("Low95" = "Lo 95",
+           "High95" = "Hi 95",
+           "Forecast" = "Point Forecast") 
 
+f_final <- fortify(forecast)
+  f_final$date <- as.Date((f_final$Index))
+  f_final <- f_final %>% 
+  select(-Index) %>% 
+  
+    rename("Low95" = "Lo 95",
+           "High95" = "Hi 95",
+           "Forecast" = "Point Forecast")  
 #Fitted model zoomed in on forecast
 
 zoomed_plot <-
-  ggplot(fcast_fix(d.forecast, TRUE), aes(x = date)) +
+  ggplot(f_final_zoom, TRUE), aes(x = date)) +
   ggtitle("Prediction model - Zoomed in") +
   xlab("Time") + ylab("Commodity Price Index") +
   geom_ribbon(aes(ymin = Low95, ymax = High95, fill = "95%")) +
@@ -210,12 +228,14 @@ zoomed_plot <-
   scale_fill_brewer(name = "CI Interval") +
   guides(colour = guide_legend(order = 1), fill = guide_legend(order = 2)) +
   theme_bw(base_size = 14) +
+
+  #segment to fix gap between data/fitted model and the forecast. 
   geom_segment(aes(x = as.Date('2023-10-01'), xend = as.Date("2023-11-01"),
                    y = 418.0750, yend = 414.3796), size = 1, colour = 'orange')
 
 # Entire plot with fitted model
 full_plot <- 
-  ggplot(fcast_fix(d.forecast, FALSE), aes(x = date)) +
+  ggplot(f_final, FALSE), aes(x = date)) +
   ggtitle("Final Fitted Model") +
   xlab("Time") + ylab("Commodity Price Index") +
   geom_ribbon(aes(ymin = Low95, ymax = High95, fill = "95%")) +
@@ -228,8 +248,11 @@ full_plot <-
   scale_fill_brewer(name = "CI Interval") +
   guides(colour = guide_legend(order = 1), fill = guide_legend(order = 2)) +
   theme_bw(base_size = 14) +
+  
+  #segment to fix gap between data/fitted model and the forecast. 
   geom_segment(aes(x = as.Date('2023-10-01'), xend = as.Date("2023-11-01"),
                    y = 418.0750, yend = 414.3796), size = 1, colour = 'orange') +
+  
   scale_x_date(breaks = seq(as.Date("1972-01-01"), as.Date("2023-10-01"), by="5 years"), 
                labels=label_date("%Y")) 
 
