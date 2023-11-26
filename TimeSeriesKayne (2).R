@@ -176,7 +176,7 @@ d.forecast <- forecast(Model1_corrected, level = c(95), h=24)
 #Pure magic don't touch
 
   
-f_final <- fortify(forecast)
+f_final <- fortify(d.forecast)
 f_final$date <- as.Date((f_final$Index))
 f_final <- f_final %>% #No touchy
   select(-Index) %>%
