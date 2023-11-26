@@ -7,20 +7,19 @@ library(grid)
 library(ggthemes)
 library(reshape2)
 library(ggforce)
+library(scales)
 #It's important to import one morbillion packages to put rectangles on a plot
-M.BCPI <- as.data.frame(read.csv("C:\\Users\\Kayne\\Desktop\\Time Series Project\\M.BCPI.csv"))
+M.BCPI <- as.data.frame(read.csv("M.BCPI"))
 
-# Total Index Including Energy 
+# BCPI Total index
 total.en <- ts(M.BCPI[,2], start = 1972, frequency = 12)
 tsplot(total.en) # The effects of marekt crashes are much more notable 
-ener <- ts(M.BCPI[,4], start = 1972, frequency = 12)
 
-
-# Without Energy 
+# BCNE
 total <- ts(M.BCPI[,3], start = 1972, frequency = 12)
 tsplot(total)
 
-# total.c <-  window(total, end = 2020)  # Look at Pre-Covid levels 
+### TRANSFORMATIONS ###
 
 total.l <- log(total)
 tsplot(total.l)# log total
@@ -35,20 +34,18 @@ pacf(total.l.d)
 
 ### USE Model$ttable to look at significant coefficients 
 # NOTE: Starting from a lower p, q value dont pass Ljung -Box test 
+# NOTE 11,1,2, 12,1,1 are both OVERFIT
 M1 <- sarima(total.l, 0,1,12) 
-M2 <- sarima(total.l, 2,1,11) 
+M2 <- sarima(total.l, 0,1,11)
 M3 <- sarima(total.l, 11,1,0)
-M4 <- sarima(total.l, 11,1,3) 
-M5 <- sarima(total.l, 11,1,2) # BEST 
-M6 <- sarima(total.l, 12,1,2)
-M7 <-sarima(total.l, 12, 1, 1) # Over fit 
-M8 <-sarima(total.l, 12,1,0) 3 # BAD
+M4 <-sarima(total.l, 12,1,0) 
+M5 <- sarima(total.l, 10,1,3)# BAD
 
-M9 <-sarima(total.l, 0,1,12, 0,0,2, 12)
 
-AICv <- c(M1$AIC, M2$AIC, M3$AIC, M4$AIC, M5$AIC, M6$AIC, M7$AIC)
-BestAIC <- order(AICv)[1:4] # Returns four best models with AIC criterion 
-# NOTE: MODEL 6 and 5 are similar we just look at model 5 for now 
+AICv <- c(M1$AIC, M2$AIC, M3$AIC, M4$AIC, M5$AIC)
+BestAIC <- order(AICv)[1:3] ## Models 5,1,3 are best (in order)
+
+
 
 # Extracts Ljung - Box statistic p -values for an ARMA(p,d,q) 
 # NOTE: df = p + q
@@ -63,17 +60,14 @@ LJB_pvalues <- function(Model, max.lag, df){
 }
 
 # Extract p-values up to lag 35
-p7  = LJB_pvalues(M7, 35, 13); p5 = LJB_pvalues(M5, 35, 14); p1 = LJB_pvalues(M1, 35, 11) 
-## p -value >0.05 at higher lags for Model 7,5,1 so we can coninute oto forecasting 
-
-
-## Forecasting (not looking ta covid effects)
+p5  = LJB_pvalues(M5, 35, 13); p1 = LJB_pvalues(M1, 35, 14); p3 = LJB_pvalues(M3, 35, 11) 
+## p -value >0.05 at higher lags for all of Model 5, 1, 3
 
 # MAYBE MAKE THIS GG PLOT 
 # DENOTED WINNING MODELS Mi by Modeli
 
-
-Model1 <-arima(total.l, c(0,1,12))
+## WERE GONNA HAVE TO UNLOG THIS 
+Model1 <-arima(total.l, c(10,1,3))
 fore1 <- predict(Model1, n.ahead = 24)
 ts.plot(log(total), xlim = c(1972, 2026), ylab = "Price Change") # IS IT PRICE CHANGE 
 
@@ -88,7 +82,6 @@ lines(fore1$pred, type="l", col=2) # MAYBE ADD A SECOND ERROR BAR
 
 
 
-
 timeline_plot <- function(ts, title){ #title in quotes
   autoplot(ts, ts.colour = "black", size = 0.8,  
            ts.linetype = "solid", xlab = "Time", ylab = "Commodity Price Index") +
@@ -100,10 +93,10 @@ timeline_plot <- function(ts, title){ #title in quotes
   ####Covid####
   #Inserts text onto plot by using x-value as date for more accurate alignment.
   # Add an integer to this val for subtle shifting if required
-  geom_text(aes(x = as.Date('2020-03-24') + 580, y = -20), label = "Covid-19", color = "black",
+  geom_text(aes(x = as.Date('2020-03-01') + 580, y = -20), label = "Covid-19", color = "black",
                size = 3, fontface = 'plain') +
   #Creates rectangle that can respond to the alpha parameter correctly (geom_rect wasnt working)
-  annotate("rect", xmin=as.Date('2020-03-24'), xmax = as.Date('2022-10-01'),
+  annotate("rect", xmin=as.Date('2020-03-01'), xmax = as.Date('2022-10-01'),
                 ymin = 0, ymax = Inf, fill = "darkred", alpha = 0.2) +
   
   #2008 bubble steve carrel saves the world by being angry ryan gosling is so me
