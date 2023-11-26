@@ -174,30 +174,28 @@ d.forecast <- forecast(Model1_corrected, level = c(95), h=24)
 #Zooming in on forecast (COMPLICATED VERSION)
 
 #Pure magic don't touch
-fcast_fix <- function(forecast, zoom = FALSE){
-  t <- zoom
-  f_final <- fortify(forecast)
-  f_final$date <- as.Date((f_final$Index))
-  f_final <- f_final %>% #No touchy
+
+  
+f_final <- fortify(forecast)
+f_final$date <- as.Date((f_final$Index))
+f_final <- f_final %>% #No touchy
   select(-Index) %>%
      
   
-    rename("Low95" = "Lo 95",
-           "High95" = "Hi 95",
-           "Forecast" = "Point Forecast") %>%
+  rename("Low95" = "Lo 95",
+          "High95" = "Hi 95",
+          "Forecast" = "Point Forecast") %>%
     
     #Pipe magic do not question
-    {if(t) filter(.,date >= as.Date("2022-01-01")) else . }
-    #Filter date is where the zoomed in model STARTS, ends based on forecast
-    #length h from forecast()
+  filter(date >= as.Date("2022-01-01")) 
+    
   
-  return(f_final)
-}
+  
 
 #Fitted model zoomed in on forecast
 
 zoomed_plot <-
-  ggplot(fcast_fix(d.forecast, TRUE), aes(x = date)) +
+  ggplot(f_final, aes(x = date)) +
   ggtitle("ARMA(10,1,3)  Time > 2022") +
   xlab("Time") + ylab("Commodity Price Index") +
   geom_ribbon(aes(ymin = Low95, ymax = High95, fill = "95%")) +
@@ -213,9 +211,21 @@ zoomed_plot <-
   geom_segment(aes(x = as.Date('2023-10-01'), xend = as.Date("2023-11-01"),
                    y = 418.0750, yend = 414.3796), size = 1, colour = 'orange')
 
+f_final <- fortify(forecast)
+f_final$date <- as.Date((f_final$Index))
+f_final <- f_final %>% #No touchy
+  select(-Index) %>%
+     
+  
+  rename("Low95" = "Lo 95",
+          "High95" = "Hi 95",
+          "Forecast" = "Point Forecast") %>%
+    
+    
+  
 # Entire plot with fitted model
 full_plot <- 
-  ggplot(fcast_fix(d.forecast, FALSE), aes(x = date)) +
+  ggplot(f_final, aes(x = date)) +
   ggtitle("ARMA(10,1,3)") +
   xlab("Time") + ylab("Commodity Price Index") +
   geom_ribbon(aes(ymin = Low95, ymax = High95, fill = "95%")) +
