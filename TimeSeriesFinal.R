@@ -49,20 +49,11 @@ M1 <- sarima(total.l, 0,1,12)
 M2 <- sarima(total.l, 0,1,11)
 M3 <- sarima(total.l, 11,1,0)
 M4 <-sarima(total.l, 12,1,0) 
-M5 <- sarima(total.l, 10,1,3)# BAD
+M5 <- sarima(total.l, 10,1,3)
 
 
 AICv <- c(M1$AIC, M2$AIC, M3$AIC, M4$AIC, M5$AIC)
 BestAIC <- order(AICv)[1:3] ## Models 5,1,3 are best (in order)
-
-M4 <- sarima(total.l, 11,1,3) 
-M5 <- sarima(total.l, 11,1,2) # BEST 
-M6 <- sarima(total.l, 12,1,2)
-M7 <-sarima(total.l, 12, 1, 1) # Over fit 
-M8 <-sarima(total.l, 12,1,0)  # BAD
-
-
-
 
 # Extracts Ljung - Box statistic p -values for an ARMA(p,d,q) 
 # NOTE: df = p + q
