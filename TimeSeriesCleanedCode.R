@@ -155,7 +155,7 @@ log_plot <- graph_aes(log(BCNE_ts), "Logged BCPI", y = "Logged CPI") +
  scale_x_date(breaks = seq(as.Date("1972-01-01"), as.Date("2023-10-01"), by="15 years"),
               labels=label_date("%Y"))
                
-log_diff <- graph_aes(diff(log(BCNE_ts)), "First Difference", y = "Data") + 
+log_diff <- graph_aes(diff(log(BCNE_ts)), "Log First Difference", y = "Data") + 
   theme_clean() + 
   scale_x_date(breaks = seq(as.Date("1972-01-01"), as.Date("2023-10-01"), by="15 years"),
                labels=label_date("%Y"))
